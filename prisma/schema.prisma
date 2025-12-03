@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  password     String
+  name         String?
+  role         String        @default("user") // admin | driver | owner | user
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  vehicles     Vehicle[]
+  complaints   Complaint[]
+  driverScores DriverScore[]
+}
+
+model Vehicle {
+  id             String            @id @default(cuid())
+  imei           String            @unique
+  registrationNo String?
+  make           String?
+  model          String?
+  year           Int?
+  vin            String?
+  ownerId        String?
+  owner          User?             @relation(fields: [ownerId], references: [id])
+  lastLat        Float?
+  lastLng        Float?
+  lastSeen       DateTime?
+  fuelCapacity   Float?
+  odometer       Float?            @default(0)
+  lastOdometer   Float?            @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  telemetries    Telemetry[]
+  fuelLogs       FuelLog[]
+  tyres          Tyre[]
+  documents      VehicleDocument[]
+  trips          Trip[]
+  complaints     Complaint[]
+  driverScores   DriverScore[]
+  stops          Stop[]
+  geofenceAlerts GeofenceAlert[]
+}
+
+model Telemetry {
+  id            String   @id @default(cuid())
+  vehicleId     String
+  vehicle       Vehicle  @relation(fields: [vehicleId], references: [id])
+  imei          String
+  timestamp     DateTime
+  latitude      Float
+  longitude     Float
+  speed         Float
+  ignition      Boolean
+  motion        Boolean
+  power         Float?
+  charge        Float?
+  totalDistance Float?
+  todayDistance Float?
+  raw           Json?
+  createdAt     DateTime @default(now())
+}
+
+model FuelLog {
+  id           String   @id @default(cuid())
+  vehicleId    String
+  vehicle      Vehicle  @relation(fields: [vehicleId], references: [id])
+  timestamp    DateTime @default(now())
+  previousFuel Float?
+  currentFuel  Float?
+  delta        Float?
+  distanceKm   Float?
+  suspicion    String // Green | Blue | Red
+  notes        String?
+  createdAt    DateTime @default(now())
+}
+
+model Tyre {
+  id          String        @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle       @relation(fields: [vehicleId], references: [id])
+  position    String
+  serial      String?
+  installedAt DateTime?
+  removedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  history     TyreHistory[]
+}
+
+model TyreHistory {
+  id        String   @id @default(cuid())
+  tyreId    String
+  tyre      Tyre     @relation(fields: [tyreId], references: [id])
+  event     String
+  timestamp DateTime @default(now())
+  notes     String?
+}
+
+model Geofence {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  type        String // circle | polygon
+  centerLat   Float?
+  centerLng   Float?
+  radius      Float? // meters for circle
+  polygon     Json?
+  scheduledAt DateTime?
+  createdAt   DateTime        @default(now())
+  alerts      GeofenceAlert[]
+}
+
+model GeofenceAlert {
+  id         String    @id @default(cuid())
+  geofenceId String?
+  geofence   Geofence? @relation(fields: [geofenceId], references: [id])
+  vehicleId  String?
+  vehicle    Vehicle?  @relation(fields: [vehicleId], references: [id])
+  message    String
+  severity   String // info|warning|critical
+  resolved   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+}
+
+model VehicleDocument {
+  id         String    @id @default(cuid())
+  vehicleId  String
+  vehicle    Vehicle   @relation(fields: [vehicleId], references: [id])
+  type       String
+  filePath   String?
+  expiryDate DateTime?
+  uploadedAt DateTime  @default(now())
+}
+
+model Trip {
+  id         String    @id @default(cuid())
+  vehicleId  String
+  vehicle    Vehicle   @relation(fields: [vehicleId], references: [id])
+  startTime  DateTime
+  endTime    DateTime?
+  distanceKm Float?
+  createdAt  DateTime  @default(now())
+}
+
+model Complaint {
+  id          String    @id @default(cuid())
+  vehicleId   String?
+  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  type        String // fuel_theft | tyre_issue | document_expired | geofence_violation | other
+  status      String    @default("open") // open | in_progress | resolved | closed
+  priority    String    @default("medium") // low | medium | high | critical
+  subject     String
+  description String?
+  response    String?
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model DriverScore {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  score       Int // 0-100
+  rating      String // Green | Blue | Red
+  speedEvents Int      @default(0)
+  brakeEvents Int      @default(0)
+  idleEvents  Int      @default(0)
+  period      String // daily | weekly | monthly
+  periodStart DateTime
+  periodEnd   DateTime
+  createdAt   DateTime @default(now())
+}
+
+model Stop {
+  id        String    @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id])
+  latitude  Float
+  longitude Float
+  startTime DateTime
+  endTime   DateTime?
+  duration  Int? // in seconds
+  address   String?
+  createdAt DateTime  @default(now())
+}
