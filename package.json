@@ -6,7 +6,7 @@
     "dev": "nodemon --watch src --exec node -r dotenv/config src/server.js",
     "start": "node -r dotenv/config src/server.js",
     "seed": "node -r dotenv/config prisma/seed.js",
-    "build": "prisma generate && prisma migrate deploy",
+    "build": "prisma generate && prisma migrate deploy && npm run seed",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "postinstall": "prisma generate"
