@@ -1,4 +1,6 @@
 FROM node:18-alpine
+# Install OpenSSL 1.1 compatibility for Prisma engine on Alpine
+RUN apk add --no-cache openssl1.1-compat
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 # Bring prisma schema in before install so postinstall can run
