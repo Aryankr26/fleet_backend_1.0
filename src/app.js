@@ -22,6 +22,7 @@ const corsOptions = {
     'http://localhost:5173',
     'https://figma-eta-eight.vercel.app',
     'https://figmafleet.vercel.app',
+    'https://figmafleet21.vercel.app',
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true,
