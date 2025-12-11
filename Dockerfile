@@ -10,6 +10,7 @@ RUN npm install -g pnpm@9
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run prisma:generate || true
-RUN pnpm prune --prod
+# Prune dev deps without re-running scripts (prisma removed from devDependencies)
+RUN PNPM_CONFIG_IGNORE_SCRIPTS=true pnpm prune --prod
 EXPOSE 3000
 CMD [ "node", "-r", "dotenv/config", "src/server.js" ]
