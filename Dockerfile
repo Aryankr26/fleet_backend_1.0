@@ -1,7 +1,8 @@
 FROM node:18-alpine
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
-RUN npm install -g pnpm@7
+# Use pnpm v9 to match lockfileVersion 9.0
+RUN npm install -g pnpm@9
 RUN pnpm install --frozen-lockfile --prod
 COPY . .
 RUN pnpm run prisma:generate || true
