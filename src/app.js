@@ -14,6 +14,9 @@ const healthRoutes = require('./routes/health');
 
 const app = express();
 
+// Required on Render/Proxies so rate-limit sees correct IPs
+app.set('trust proxy', 1);
+
 // CORS configuration - allow frontend origins
 const corsOptions = {
   origin: [
