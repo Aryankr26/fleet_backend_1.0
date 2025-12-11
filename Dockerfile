@@ -1,6 +1,8 @@
-FROM node:18-alpine
-# Install OpenSSL 1.1 compatibility for Prisma engine on Alpine
-RUN apk add --no-cache openssl1.1-compat
+FROM node:18-slim
+# Install OpenSSL and certs (glibc base avoids musl engine issues)
+RUN apt-get update \ 
+	&& apt-get install -y --no-install-recommends openssl ca-certificates \ 
+	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 # Bring prisma schema in before install so postinstall can run
